@@ -2,12 +2,13 @@ package handler
 
 import (
 	"app/internal/app/service"
-	resp "app/internal/dto/response"
-	"context"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type HProduct interface {
-	FindByUUID(ctx context.Context, uuid string) (*resp.RespProduct, error)
+	FindByUUID(c *gin.Context)
 }
 
 type hProduct struct {
@@ -20,6 +21,14 @@ func NewHProduct(sProduct service.SProduct) HProduct {
 	}
 }
 
-func (h *hProduct) FindByUUID(ctx context.Context, uuid string) (*resp.RespProduct, error) {
-	return h.sProduct.FindByUUID(ctx, uuid)
+func (h *hProduct) FindByUUID(c *gin.Context) {
+	uuid := c.Param("uuid")
+
+	product, err := h.sProduct.FindByUUID(c.Request.Context(), uuid)
+	if err != nil {
+		ResponseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ResponseOK(c, product)
 }

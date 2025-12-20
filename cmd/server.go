@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func ApiServer(logger *zap.Logger, port string, name string, engine *gin.Engine) error {
+func ApiServer(port string, name string, engine *gin.Engine) error {
 	if engine == nil {
 		return errors.New("engine is nil")
 	}
@@ -28,26 +29,26 @@ func ApiServer(logger *zap.Logger, port string, name string, engine *gin.Engine)
 	srv := &http.Server{Addr: ":" + port, Handler: engine}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("can't run service", zap.Error(err))
+			log.Fatal("can't run service", zap.Error(err))
 		}
 	}()
-	logger.Info(name + " initiated at port " + port)
+	log.Println(name + " initiated at port " + port)
 
 	// gracefully shutdown ------------------------------------------------------------------------
 	quit := make(chan os.Signal, 2)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
-	logger.Info("Shutdown " + name + " service")
+	log.Println("Shutdown " + name + " service")
 
 	cts, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(cts); err != nil {
-		logger.Error("can't shutdown "+name+" service", zap.Error(err))
+		log.Println("can't shutdown "+name+" service", zap.Error(err))
 	}
 
-	logger.Info(name + " service exiting")
+	log.Println(name + " service exiting")
 
-	logger.Info("Running cleanup tasks...")
+	log.Println("Running cleanup tasks...")
 
 	return nil
 }

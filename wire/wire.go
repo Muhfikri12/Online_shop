@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Initialize() *gin.Engine {
-	db, err := postgres.NewPostgres(config.DBConfig{}).Connect()
+func Initialize(cfg *config.Config) *gin.Engine {
+	db, err := postgres.NewPostgres(cfg.DBConfig).Connect()
 	if err != nil {
 		panic(err)
 	}

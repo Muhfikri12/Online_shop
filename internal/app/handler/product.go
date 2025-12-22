@@ -2,6 +2,7 @@ package handler
 
 import (
 	"app/internal/app/service"
+	"app/pkg/toolkit"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,9 +27,9 @@ func (h *hProduct) FindByUUID(c *gin.Context) {
 
 	product, err := h.sProduct.FindByUUID(c.Request.Context(), uuid)
 	if err != nil {
-		ResponseError(c, http.StatusInternalServerError, err.Error())
+		toolkit.ResponseError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ResponseOK(c, product)
+	toolkit.ResponseOK(c, product)
 }

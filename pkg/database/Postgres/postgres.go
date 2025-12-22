@@ -7,13 +7,14 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Postgres struct {
-	config config.DBConfig
+	config *config.Config
 }
 
-func NewPostgres(config config.DBConfig) *Postgres {
+func NewPostgres(config *config.Config) *Postgres {
 	return &Postgres{
 		config: config,
 	}
@@ -23,10 +24,17 @@ func (p *Postgres) Connect() (*gorm.DB, error) {
 
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		p.config.DBHost, p.config.DBUser, p.config.DBPassword, p.config.DBName, p.config.DBPort,
+		p.config.DBConfig.DBHost, p.config.DBConfig.DBUser, p.config.DBConfig.DBPassword, p.config.DBConfig.DBName, p.config.DBConfig.DBPort,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	logMode := logger.Silent
+	if p.config.Environment == "local" || p.config.Environment == "development" {
+		logMode = logger.Info
+	}
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logMode),
+	})
 	if err != nil {
 		return nil, err
 	}

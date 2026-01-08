@@ -2,6 +2,7 @@ package repository
 
 import (
 	resp "app/internal/dto/response"
+	"app/internal/model"
 	"context"
 
 	"gorm.io/gorm"
@@ -10,6 +11,7 @@ import (
 /* --------------------------------- Interface --------------------------------- */
 type RProduct interface {
 	FindByUUID(ctx context.Context, uuid string) (*resp.RespProduct, error)
+	FindAll(ctx context.Context) ([]model.Product, error)
 }
 
 type rProduct struct {
@@ -20,6 +22,7 @@ func NewRProduct(db *gorm.DB) RProduct {
 	return &rProduct{db}
 }
 
+/* --------------------------------- Function -------------------------------- */
 func (r *rProduct) FindByUUID(ctx context.Context, uuid string) (*resp.RespProduct, error) {
 	var product resp.RespProduct
 	if err := r.db.WithContext(ctx).Table("products p").
@@ -29,4 +32,13 @@ func (r *rProduct) FindByUUID(ctx context.Context, uuid string) (*resp.RespProdu
 		return nil, err
 	}
 	return &product, nil
+}
+
+func (r *rProduct) FindAll(ctx context.Context) ([]model.Product, error) {
+	var products []model.Product
+	if err := r.db.WithContext(ctx).
+		Find(&products).Error; err != nil {
+		return nil, err
+	}
+	return products, nil
 }

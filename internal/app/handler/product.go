@@ -3,6 +3,7 @@ package handler
 import (
 	"app/internal/app/service"
 	"app/pkg/toolkit"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 
 type HProduct interface {
 	FindByUUID(c *gin.Context)
+	FindAll(c *gin.Context)
 }
 
 type hProduct struct {
@@ -32,4 +34,19 @@ func (h *hProduct) FindByUUID(c *gin.Context) {
 	}
 
 	toolkit.ResponseOK(c, product)
+}
+
+func (h *hProduct) FindAll(c *gin.Context) {
+	products, err := h.sProduct.FindAll(c.Request.Context())
+	if err != nil {
+		toolkit.ResponseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	fmt.Println("username", c.GetString("username"))
+
+	toolkit.ResponsePage(c, products, toolkit.Pagination{
+		Page:  1,
+		Limit: 10,
+	})
 }

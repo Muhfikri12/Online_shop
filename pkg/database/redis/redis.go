@@ -18,6 +18,7 @@ type Redis interface {
 	PrintKeys(ctx context.Context)
 	Exists(ctx context.Context, name string) (bool, error)
 	Incr(ctx context.Context, name string) (int64, error)
+	Expire(ctx context.Context, name string, d time.Duration) error
 }
 
 // Setup Redis
@@ -91,4 +92,8 @@ func (c *rds) Exists(ctx context.Context, name string) (bool, error) {
 
 func (c *rds) Incr(ctx context.Context, name string) (int64, error) {
 	return c.rdb.Incr(ctx, c.prefix+"_"+name).Result()
+}
+
+func (c *rds) Expire(ctx context.Context, name string, d time.Duration) error {
+	return c.rdb.Expire(ctx, c.prefix+"_"+name, d).Err()
 }

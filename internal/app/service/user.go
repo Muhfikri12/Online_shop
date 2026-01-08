@@ -4,7 +4,6 @@ import (
 	"app/internal/app/repository"
 	"app/internal/dto/request"
 	resp "app/internal/dto/response"
-	"app/internal/model"
 	"app/pkg/config"
 	rds "app/pkg/database/redis"
 	"app/pkg/middleware"
@@ -75,8 +74,16 @@ func (s *sUser) Login(ctx context.Context, req request.Login) (*resp.RespLogin, 
 		return nil, err
 	}
 
+	// create session
+	session := resp.SessionRecord{
+		ID:       user.ID,
+		UUID:     user.UUID,
+		Username: user.Username,
+		Email:    user.Email,
+	}
+
 	// save token
-	err = s.saveToken(ctx, jti, &user)
+	err = s.saveToken(ctx, jti, &session)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +117,13 @@ func (s *sUser) checkFail(ctx context.Context, failKey, lockKey, username string
 	// check fail login
 	if value > 3 {
 
-		// set lock user 5 min
-		err = s.rds.SetWithDuration(ctx, lockKey, "1", time.Minute*5)
+		// set lock user 15 min
+		err = s.rds.Expire(ctx, lockKey, time.Minute*5)
+		if err != nil {
+			return err
+		}
+
+		err = s.rds.Delete(ctx, failKey)
 		if err != nil {
 			return err
 		}
@@ -122,9 +134,9 @@ func (s *sUser) checkFail(ctx context.Context, failKey, lockKey, username string
 	return nil
 }
 
-func (s *sUser) saveToken(ctx context.Context, jti string, user *model.User) error {
+func (s *sUser) saveToken(ctx context.Context, jti string, session *resp.SessionRecord) error {
 	// Marshal user to json
-	userJson, err := json.Marshal(user)
+	sessionJson, err := json.Marshal(session)
 	if err != nil {
 		return err
 	}
@@ -132,7 +144,7 @@ func (s *sUser) saveToken(ctx context.Context, jti string, user *model.User) err
 	key := fmt.Sprintf("session:%s", jti)
 
 	// save token to redis
-	err = s.rds.SetWithDuration(ctx, key, string(userJson), time.Minute*10)
+	err = s.rds.SetWithDuration(ctx, key, string(sessionJson), time.Minute*10)
 	if err != nil {
 		return err
 	}

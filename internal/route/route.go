@@ -21,8 +21,12 @@ func Route(db *gorm.DB, cfg *config.Config, rds rds.Redis) *gin.Engine {
 
 	api.POST("/login", handler.User.Login)
 
+	// Set Auth
+	api.Use(middleware.Auth(rds, cfg))
+
 	// Product
 	api.GET("/product/:uuid", handler.Product.FindByUUID)
+	api.GET("/products", handler.Product.FindAll)
 
 	return router
 

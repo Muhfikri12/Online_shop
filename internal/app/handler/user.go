@@ -32,7 +32,7 @@ func (h *hUser) Login(c *gin.Context) {
 
 	user, err := h.sUser.Login(c.Request.Context(), req)
 	if err != nil {
-		toolkit.ResponseError(c, http.StatusInternalServerError, err.Error())
+		toolkit.ResponseError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 

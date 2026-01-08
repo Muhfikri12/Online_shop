@@ -1,6 +1,7 @@
 package toolkit
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -25,7 +26,7 @@ type Pagination struct {
 type Meta struct {
 	Pagination     *Pagination `json:"pagination,omitempty"`
 	RequestID      string      `json:"request_id"`
-	ResponseTimeMS int64       `json:"response_time_ms"`
+	ResponseTimeMS string      `json:"response_time_ms"`
 	Timestamp      time.Time   `json:"timestamp"`
 }
 
@@ -66,16 +67,16 @@ func ResponsePage(c *gin.Context, data interface{}, page Pagination) {
 }
 
 func buildMeta(c *gin.Context) Meta {
-	var responseTime int64
-	if startTime, exists := c.Get("start_time"); exists {
-		if t, ok := startTime.(time.Time); ok {
-			responseTime = time.Since(t).Milliseconds()
+	var rt int64
+	if d, ok := c.Get("response_time"); ok {
+		if startTime, ok := d.(time.Time); ok {
+			rt = time.Since(startTime).Milliseconds()
 		}
 	}
 
 	return Meta{
 		RequestID:      c.GetString("request_id"),
-		ResponseTimeMS: responseTime,
+		ResponseTimeMS: fmt.Sprintf("%d ms", rt),
 		Timestamp:      time.Now(),
 	}
 }

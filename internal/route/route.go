@@ -5,15 +5,16 @@ import (
 	"app/internal/app/repository"
 	"app/internal/app/service"
 	"app/pkg/config"
+	rds "app/pkg/database/redis"
 	"app/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func Route(db *gorm.DB, cfg *config.Config) *gin.Engine {
+func Route(db *gorm.DB, cfg *config.Config, rds rds.Redis) *gin.Engine {
 
-	handler, router := InitRoute(db, cfg)
+	handler, router := InitRoute(db, cfg, rds)
 
 	api := router.Group("/api")
 	api.Use(middleware.Meta())
@@ -27,12 +28,12 @@ func Route(db *gorm.DB, cfg *config.Config) *gin.Engine {
 
 }
 
-func InitRoute(db *gorm.DB, cfg *config.Config) (*handler.Handler, *gin.Engine) {
+func InitRoute(db *gorm.DB, cfg *config.Config, rds rds.Redis) (*handler.Handler, *gin.Engine) {
 	// Repository
 	repo := repository.NewRepository(db)
 
 	// Service
-	service := service.NewService(repo, cfg)
+	service := service.NewService(repo, cfg, rds)
 
 	// Handler
 	handler := handler.NewHandler(service)

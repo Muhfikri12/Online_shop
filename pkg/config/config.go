@@ -63,3 +63,19 @@ func NewConfig() *Config {
 		},
 	}
 }
+
+type RedisConfig struct {
+	Host     string
+	Port     string
+	Password string
+	Prefix   string
+}
+
+func (c *Config) RedisConfig() *RedisConfig {
+	return &RedisConfig{
+		Host:     viper.GetString("REDIS_HOST"),
+		Port:     viper.GetString("REDIS_PORT"),
+		Password: viper.GetString("REDIS_PASSWORD"),
+		Prefix:   viper.GetString("REDIS_PREFIX"),
+	}
+}

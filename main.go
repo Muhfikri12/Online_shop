@@ -11,7 +11,7 @@ func main() {
 	cfg := config.NewConfig()
 
 	// wire
-	engine := wire.Initialize(cfg)
+	engine := wire.Wire(cfg)
 
 	// run
 	cmd.ApiServer(cfg.Port, cfg.Name, engine)

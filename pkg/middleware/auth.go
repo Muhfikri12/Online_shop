@@ -11,8 +11,11 @@ import (
 
 func Meta() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		startTime := time.Now()
 		c.Set("request_id", uuid.New().String())
-		c.Set("start_time", time.Now())
+
+		c.Set("response_time", startTime)
+
 		c.Next()
 	}
 }

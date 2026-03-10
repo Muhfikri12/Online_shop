@@ -60,6 +60,7 @@ func Auth(rds redis.Redis, cfg *config.Config) gin.HandlerFunc {
 		c.Set("user_id", redisClaims.ID)
 		c.Set("username", redisClaims.Username)
 		c.Set("email", redisClaims.Email)
+		c.Set("jti", claims.JTI)
 
 		c.Next()
 	}

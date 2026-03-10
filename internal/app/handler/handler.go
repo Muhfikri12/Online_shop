@@ -2,6 +2,7 @@ package handler
 
 import (
 	"app/internal/app/service"
+	"app/pkg/config"
 )
 
 type Handler struct {
@@ -9,9 +10,9 @@ type Handler struct {
 	User    HUser
 }
 
-func NewHandler(service *service.Service) *Handler {
+func NewHandler(service *service.Service, cfg *config.Config) *Handler {
 	return &Handler{
 		Product: NewHProduct(service.SProduct),
-		User:    NewHUser(service.SUser),
+		User:    NewHUser(service.SUser, cfg),
 	}
 }

@@ -24,6 +24,17 @@ func NewHProduct(sProduct service.SProduct) HProduct {
 	}
 }
 
+// FindByUUID godoc
+// @Summary      Get product by UUID
+// @Description  Returns a single product by its UUID. Requires authentication.
+// @Tags         products
+// @Produce      json
+// @Param        uuid   path      string  true  "Product UUID"
+// @Success      200    {object}  toolkit.Response
+// @Failure      401    {object}  toolkit.Response
+// @Failure      500    {object}  toolkit.Response
+// @Security     BearerAuth
+// @Router       /product/{uuid} [get]
 func (h *hProduct) FindByUUID(c *gin.Context) {
 	uuid := c.Param("uuid")
 
@@ -36,6 +47,16 @@ func (h *hProduct) FindByUUID(c *gin.Context) {
 	toolkit.ResponseOK(c, product)
 }
 
+// FindAll godoc
+// @Summary      List products
+// @Description  Returns a paginated list of products. Requires authentication.
+// @Tags         products
+// @Produce      json
+// @Success      200  {object}  toolkit.Response
+// @Failure      401  {object}  toolkit.Response
+// @Failure      500  {object}  toolkit.Response
+// @Security     BearerAuth
+// @Router       /products [get]
 func (h *hProduct) FindAll(c *gin.Context) {
 	products, err := h.sProduct.FindAll(c.Request.Context())
 	if err != nil {

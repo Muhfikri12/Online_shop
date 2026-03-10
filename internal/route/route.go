@@ -1,6 +1,7 @@
 package route
 
 import (
+	_ "app/docs" // swagger docs (generate with: swag init -g main.go -o docs)
 	"app/internal/app/handler"
 	"app/internal/app/repository"
 	"app/internal/app/service"
@@ -9,6 +10,8 @@ import (
 	"app/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 )
 
@@ -19,10 +22,14 @@ func Route(db *gorm.DB, cfg *config.Config, rds rds.Redis) *gin.Engine {
 	api := router.Group("/api")
 	api.Use(middleware.Meta())
 
+	// public auth routes
 	api.POST("/login", handler.User.Login)
+	api.POST("/refresh-token", handler.User.RefreshToken)
 
-	// Set Auth
+	// protected routes
 	api.Use(middleware.Auth(rds, cfg))
+
+	api.POST("/logout", handler.User.Logout)
 
 	// Product
 	api.GET("/product/:uuid", handler.Product.FindByUUID)
@@ -40,12 +47,15 @@ func InitRoute(db *gorm.DB, cfg *config.Config, rds rds.Redis) (*handler.Handler
 	service := service.NewService(repo, cfg, rds)
 
 	// Handler
-	handler := handler.NewHandler(service)
+	handler := handler.NewHandler(service, cfg)
 
 	// Route
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+
+	// Swagger UI (no auth)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	ginMode := gin.ReleaseMode
 	if ginMode == gin.DebugMode {

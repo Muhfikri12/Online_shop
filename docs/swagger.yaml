@@ -1,0 +1,189 @@
+basePath: /api
+definitions:
+  request.Login:
+    properties:
+      password:
+        type: string
+      remember_me:
+        type: boolean
+      username:
+        type: string
+    type: object
+  toolkit.Meta:
+    properties:
+      pagination:
+        $ref: '#/definitions/toolkit.Pagination'
+      request_id:
+        type: string
+      response_time_ms:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  toolkit.Pagination:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
+    type: object
+  toolkit.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/toolkit.Meta'
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: API Support
+  description: REST API for Online Shop with JWT authentication, refresh tokens, and
+    remember-me.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Online Shop API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate with username and password. Returns access token (JWT)
+        and sets refresh token in HttpOnly cookie. Use remember_me for longer refresh
+        token validity (30 days vs 7 days).
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data contains access_token, expires_in
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+      summary: Login
+      tags:
+      - auth
+  /logout:
+    post:
+      description: 'Invalidate current session: revoke refresh tokens and clear Redis
+        session. Requires valid access token.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data contains message
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /product/{uuid}:
+    get:
+      description: Returns a single product by its UUID. Requires authentication.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+      security:
+      - BearerAuth: []
+      summary: Get product by UUID
+      tags:
+      - products
+  /products:
+    get:
+      description: Returns a paginated list of products. Requires authentication.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+      security:
+      - BearerAuth: []
+      summary: List products
+      tags:
+      - products
+  /refresh-token:
+    post:
+      description: Issue a new access token using the refresh token from HttpOnly
+        cookie (sent automatically by the browser). Performs token rotation (old refresh
+        token is revoked).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data contains new access_token, expires_in
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/toolkit.Response'
+      summary: Refresh access token
+      tags:
+      - auth
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
